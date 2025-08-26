@@ -1,23 +1,22 @@
 import type { BinanceMarkPriceStreamMessage } from "./types";
 
 // let streams = ['bnbusdt','btcusdt'];
+// let binanceUrl = 'wss://fstream.binance.com/stream?streams=bnbusdt@aggTrade/btcusdt@markPrice';
 let streams = ['btcusdt'];
-let binance_wss_url = 'wss://fstream.binance.com/'; 
-// let binance_url = 'wss://fstream.binance.com/stream?streams=bnbusdt@aggTrade/btcusdt@markPrice';
+let binanceWsURL = 'wss://fstream.binance.com/'; 
 
 const streamList = streams.map(symbol =>
   `${symbol.toLowerCase()}@markPrice`
 ).join('/');
 
 // Construct the full URL
-const binance_url = `${binance_wss_url}stream?streams=${streamList}`;
-console.log(binance_url);
+const binanceUrl = `${binanceWsURL}stream?streams=${streamList}`;
+console.log(binanceUrl);
 
-let ws = new WebSocket(binance_url);
+let ws = new WebSocket(binanceUrl);
 
 // Streams in order for variable : streams
 ws.addEventListener('message', (event) => {
-    // console.log('Receiving : ', event.data);
     const response : BinanceMarkPriceStreamMessage = JSON.parse(event.data);
     console.log("Price : ", response.data.P);
 })
