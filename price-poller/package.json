@@ -4,12 +4,15 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev" : "bun index.js"
+    "dev": "bun index.js"
   },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "redis": "^5.8.2"
   }
 }

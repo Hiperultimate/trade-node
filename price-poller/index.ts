@@ -1,3 +1,4 @@
+import client from "./redis_db";
 import type { BinanceMarkPriceStreamMessage } from "./types";
 
 // let streams = ['bnbusdt','btcusdt'];
@@ -19,7 +20,7 @@ const askPriceDecrementRate = 0.0005;
 let ws = new WebSocket(binanceUrl);
 
 // Streams in order for variable : streams
-ws.addEventListener('message', (event) => {
+ws.addEventListener('message',async (event) => {
     const response : BinanceMarkPriceStreamMessage = JSON.parse(event.data);
     console.log("Base Price : ", response.data.P);
 
@@ -27,4 +28,5 @@ ws.addEventListener('message', (event) => {
     const bidPrice = fetchedPrice + fetchedPrice * bidPriceIncrementRate;
     const askPrice = fetchedPrice - fetchedPrice * askPriceDecrementRate;
     console.log("New price : ", bidPrice, askPrice);
+    await client.publish("BTC" , JSON.stringify({symbol: "BTC", askPrice, bidPrice}));
 })
