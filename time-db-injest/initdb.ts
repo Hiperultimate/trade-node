@@ -6,7 +6,7 @@ const initSql = readFileSync("./init_timescale.sql", "utf-8");
 
 
 async function main(){
-    if(!process.env.TIMESCALE_DB) throw new Error("Cannot find Redis DB");
+    if(!process.env.TIMESCALE_DB) throw new Error("Cannot find timescale DB");
     const client = new SQL(process.env.TIMESCALE_DB);
 
     await client.connect();
