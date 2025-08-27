@@ -10,6 +10,13 @@ type UserBalanceMap = {
 
 export type Users = {
   [userId: string]: {
-    balance: UserBalanceMap;
+    balance: UserBalanceMap;    
   };
 };
+
+export type IFetchAssetDetails = {
+    time: Date,
+    symbol: string,
+    bid_price: number,
+    ask_price: number
+}[]
