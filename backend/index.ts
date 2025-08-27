@@ -21,7 +21,13 @@ const auth = (req: Request, res: Response, next: NextFunction) => {
     return res.status(401).send({ message: "Missing auth token" });
   }
 
-  let token = jwt.verify(auth_token, privateKey) as {username: string, password:string};
+  let token: any;
+  try {
+    token = jwt.verify(auth_token, privateKey);
+  } catch (err) {
+    console.error("JWT verify error:", err);
+    return res.status(403).json({ message: "Invalid or expired auth token" });
+  }
   const token_username = token.username;
   const token_password = token.password;
 
