@@ -1,7 +1,7 @@
-import { userBalance } from "../store";
+import { users } from "../store";
 
 export async function checkUserTokenLimit(username: string, asset: string, requiredQty: number) {
-    const userData = userBalance[username]!;
+    const userData = users[username]!;
     const userCoin = userData.balance[asset]!;
     if(userCoin.qty>= requiredQty){
         return true

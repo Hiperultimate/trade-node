@@ -1,4 +1,4 @@
-import { userBalance } from "../store";
+import { users } from "../store";
 
 export async function deductUserBalance(
   username: string,
@@ -7,7 +7,7 @@ export async function deductUserBalance(
 ) : Promise<boolean> {
   try {
     return await new Promise((res, rej) => {
-      userBalance[username]!.balance[asset]!.qty -= reduceQty;
+      users[username]!.balance[asset]!.qty -= reduceQty;
       res(true);
     });
   } catch (error) {

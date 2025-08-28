@@ -3,8 +3,8 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
-  "scripts" : {
-    "dev" : "bun index"
+  "scripts": {
+    "dev": "bun index"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -18,6 +18,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^11.1.0"
   }
 }

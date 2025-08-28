@@ -1,4 +1,4 @@
-import type { Users } from "./types";
+import type { IUserOrders, Users } from "./types";
 
-export const userBalance : Users = {};
-export const users : Record<string,string> = {};
+export const users : Users = {};
+export const buy_orders : IUserOrders = {}; // Consits of all users buy orders

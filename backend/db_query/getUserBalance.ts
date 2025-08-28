@@ -1,9 +1,9 @@
-import { userBalance } from "../store";
+import { users } from "../store";
 
 export async function getUserBalance(username: string) {
   try {
     const balance = await new Promise((res, _) => {
-      const getBalance = userBalance[username];
+      const getBalance = users[username]!.balance;
       res(getBalance);
     });
     return balance!;

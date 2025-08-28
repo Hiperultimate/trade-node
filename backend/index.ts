@@ -4,13 +4,14 @@ import express, {
   type Response,
 } from "express";
 import cors from "cors";
-import { userBalance, users } from "./store";
+import { users } from "./store";
 import jwt from "jsonwebtoken";
 import { getLatestAssetPrice } from "./db_query/getLatestAssetPrice";
 import { checkUserTokenLimit } from "./db_query/checkUserTokenLimit";
 import { deductUserBalance } from "./db_query/deductUserBalance";
 import { giveUserAsset } from "./db_query/giveUserAsset";
 import { getUserBalance } from "./db_query/getUserBalance";
+import { getUserOrders } from "./db_query/getUserOrders";
 
 const app = express();
 const port = 8080;
@@ -36,7 +37,7 @@ const auth = (req: Request, res: Response, next: NextFunction) => {
   const token_username = token.username;
   const token_password = token.password;
 
-  if (users[token_username] !== token_password) {
+  if (users[token_username]?.password !== token_password) {
     res.status(404).send({ message: "Invalid auth token. Bad request." });
   }
 
@@ -44,8 +45,8 @@ const auth = (req: Request, res: Response, next: NextFunction) => {
 };
 
 app.post("/signup", (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
+  const username = req.body.username as string;
+  const password = req.body.password as string;
 
   // Check from DB if username is already taken
   if (users[username]) {
@@ -53,8 +54,11 @@ app.post("/signup", (req, res) => {
     return;
   }
 
-  users[username] = password;
-  userBalance[username] = {balance : {"USD" : {qty: 10000}}}
+  users[username] = {
+    password: password,
+    balance: {"USD" : {qty: 10000}},
+    user_orders: []
+  };
   res.status(200).send({ message: "User account created successfully!" });
 });
 
@@ -70,7 +74,7 @@ app.post("/signin", (req, res) => {
     return;
   }
 
-  if (users[username] !== password) {
+  if (users[username].password !== password) {
     res.status(404).send({ message: "User password incorrect" });
     return;
   }
@@ -99,13 +103,11 @@ app.post("/order/open", auth,  async (req,res) => {
         // When doing something like this, its better to run a transaction through your DB so it reverts everything in case it fails.
         // For now this will do
         const isBalanceDeducted = await deductUserBalance(username, 'USD', totalPrice);
-        const isAssetTransferred = await giveUserAsset(username,asset,qty);
+        const isAssetTransferred = await giveUserAsset(username, asset, assetDetails.ask_price, 1, qty);
 
         if(!(isBalanceDeducted && isAssetTransferred)){
             res.status(404).send({message : "Something went wrong..."});
         }
-
-        console.log("Checking balance : ", userBalance[username]);
 
         res.status(200).send({message : "Asset bought successfully"});
     }
@@ -119,8 +121,9 @@ app.get("/order", async (req : Request<{} ,{}, {} ,UserOrder> , res) => {
     // Need to encrypt and decrypt user auth token so that we can get unique user field and check if the current user is asking for their data and no one else
     const username = req.query.username;
     const userBalance = await getUserBalance(username);
+    const userOrder = await getUserOrders(username);
 
-    res.status(200).send(userBalance);
+    res.status(200).send({...userBalance , ...userOrder});
 })
 
 app.get("/check", auth, (req, res) => {
