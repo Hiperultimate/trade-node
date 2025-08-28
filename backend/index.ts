@@ -10,6 +10,7 @@ import { getLatestAssetPrice } from "./db_query/getLatestAssetPrice";
 import { checkUserTokenLimit } from "./db_query/checkUserTokenLimit";
 import { deductUserBalance } from "./db_query/deductUserBalance";
 import { giveUserAsset } from "./db_query/giveUserAsset";
+import { getUserBalance } from "./db_query/getUserBalance";
 
 const app = express();
 const port = 8080;
@@ -106,8 +107,20 @@ app.post("/order/open", auth,  async (req,res) => {
 
         console.log("Checking balance : ", userBalance[username]);
 
-        res.status(200).send({message : "Balance transferred successfully"});
+        res.status(200).send({message : "Asset bought successfully"});
     }
+})
+
+interface UserOrder {
+    username : string;
+}
+
+app.get("/order", async (req : Request<{} ,{}, {} ,UserOrder> , res) => {
+    // Need to encrypt and decrypt user auth token so that we can get unique user field and check if the current user is asking for their data and no one else
+    const username = req.query.username;
+    const userBalance = await getUserBalance(username);
+
+    res.status(200).send(userBalance);
 })
 
 app.get("/check", auth, (req, res) => {
