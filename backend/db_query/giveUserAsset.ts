@@ -7,15 +7,14 @@ export async function giveUserAsset(
   assetPrice: number,
   leverage: number,
   qty: number
-): Promise<boolean> {
-  const userData = users[username]!;
-
+): Promise<undefined | string> {
   // Simulating a DB call
   try {
     const id = uuid();
     return await new Promise((res, _) => {
       // push order ID in buy_orders
       buy_orders[id] = {
+        username: username,
         asset: asset,
         asset_bought_price: assetPrice,
         leverage: leverage,
@@ -25,9 +24,9 @@ export async function giveUserAsset(
       };
       // push order ID in users.user_orders
       users[username]!.user_orders.push(id);
-      res(true);
+      res(id);
     });
   } catch (error) {
-    return false;
+    return undefined;
   }
 }

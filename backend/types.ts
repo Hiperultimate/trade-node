@@ -27,6 +27,7 @@ export type IUserOrders = {
 };
 
 type IOrders = {
+    username: string,
     qty: number, // 0.002
     margin: number, // 100 (money spent in $)
     leverage: number, // (1-100x multipler)

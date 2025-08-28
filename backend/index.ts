@@ -4,7 +4,7 @@ import express, {
   type Response,
 } from "express";
 import cors from "cors";
-import { users } from "./store";
+import { buy_orders, users } from "./store";
 import jwt from "jsonwebtoken";
 import { getLatestAssetPrice } from "./db_query/getLatestAssetPrice";
 import { checkUserTokenLimit } from "./db_query/checkUserTokenLimit";
@@ -12,6 +12,8 @@ import { deductUserBalance } from "./db_query/deductUserBalance";
 import { giveUserAsset } from "./db_query/giveUserAsset";
 import { getUserBalance } from "./db_query/getUserBalance";
 import { getUserOrders } from "./db_query/getUserOrders";
+import { removeAssetFromUser } from "./db_query/removeAssetFromUser";
+import { transferRequiredBalanceAmt } from "./db_query/transferRequiredBalanceAmt";
 
 const app = express();
 const port = 8080;
@@ -56,8 +58,8 @@ app.post("/signup", (req, res) => {
 
   users[username] = {
     password: password,
-    balance: {"USD" : {qty: 10000}},
-    user_orders: []
+    balance: { USD: { qty: 10000 } },
+    user_orders: [],
   };
   res.status(200).send({ message: "User account created successfully!" });
 });
@@ -85,46 +87,98 @@ app.post("/signin", (req, res) => {
 });
 
 // API endpoint to buy an order
-app.post("/order/open", auth,  async (req,res) => {
-    // Ignoring stopLoss and takeProfit for now
-    let { type, qty, asset, stopLoss, takeProfit, username } = req.body;
-    qty = Number(qty);
+app.post("/order/open", auth, async (req, res) => {
+  // Ignoring stopLoss and takeProfit for now
+  let { type, qty, asset, stopLoss, takeProfit, username } = req.body;
+  qty = Number(qty);
 
-    if(type === "buy"){
-        // get asset details like asset price
-        const assetDetails = await getLatestAssetPrice('BTC');
-        const totalPrice = assetDetails.ask_price * qty;
+  if (type === "buy") {
+    // get asset details like asset price
+    const assetDetails = await getLatestAssetPrice("BTC");
+    const totalPrice = assetDetails.ask_price * qty;
 
-        // check how much usd does user holds
-        const isBalanceEnough = await checkUserTokenLimit(username, "USD", totalPrice);
-        if(!isBalanceEnough) res.status(404).send({message: "Insufficient funds..."});
+    // check how much usd does user holds
+    const isBalanceEnough = await checkUserTokenLimit(
+      username,
+      "USD",
+      totalPrice
+    );
+    if (!isBalanceEnough)
+      res.status(404).send({ message: "Insufficient funds..." });
 
+    // When doing something like this, its better to run a transaction through your DB so it reverts everything in case it fails.
+    // For now this will do
+    const isBalanceDeducted = await deductUserBalance(
+      username,
+      "USD",
+      totalPrice
+    );
+    const isAssetTransferred = await giveUserAsset(
+      username,
+      asset,
+      assetDetails.ask_price,
+      1,
+      qty
+    );
 
-        // When doing something like this, its better to run a transaction through your DB so it reverts everything in case it fails.
-        // For now this will do
-        const isBalanceDeducted = await deductUserBalance(username, 'USD', totalPrice);
-        const isAssetTransferred = await giveUserAsset(username, asset, assetDetails.ask_price, 1, qty);
-
-        if(!(isBalanceDeducted && isAssetTransferred)){
-            res.status(404).send({message : "Something went wrong..."});
-        }
-
-        res.status(200).send({message : "Asset bought successfully"});
+    if (!(isBalanceDeducted || isAssetTransferred === undefined)) {
+      res.status(404).send({ message: "Something went wrong..." });
     }
-})
+
+    res
+      .status(200)
+      .send({ message: "Asset bought successfully", id: isAssetTransferred });
+  }
+});
+
+app.post("/order/close", auth, async (req, res) => {
+  // Ignoring stopLoss and takeProfit for now
+  let { order_id } = req.body;
+  const orderDetails = buy_orders[order_id];
+
+  if (!orderDetails) {
+    res.status(404).send({ message: "Order not found..." });
+    return;
+  }
+
+  const { type, qty, username } = orderDetails;
+
+  if (type === "buy") {
+    // get asset details like asset price
+    const assetDetails = await getLatestAssetPrice("BTC");
+    const totalPrice = assetDetails.ask_price * qty;
+
+    // When doing something like this, its better to run a transaction through your DB so it reverts everything in case it fails.
+    // For now this will do
+
+    const isAssetRemoved = await removeAssetFromUser(username, order_id);
+    const isBalanceTransfered = await transferRequiredBalanceAmt(
+      username,
+      totalPrice
+    );
+
+    if (!(isAssetRemoved && isBalanceTransfered)) {
+      res.status(404).send({ message: "Something went wrong..." });
+    }
+
+    res
+      .status(200)
+      .send({ message: "Asset sold successfully", asset: assetDetails });
+  }
+});
 
 interface UserOrder {
-    username : string;
+  username: string;
 }
 
-app.get("/order", async (req : Request<{} ,{}, {} ,UserOrder> , res) => {
-    // Need to encrypt and decrypt user auth token so that we can get unique user field and check if the current user is asking for their data and no one else
-    const username = req.query.username;
-    const userBalance = await getUserBalance(username);
-    const userOrder = await getUserOrders(username);
+app.get("/order", async (req: Request<{}, {}, {}, UserOrder>, res) => {
+  // Need to encrypt and decrypt user auth token so that we can get unique user field and check if the current user is asking for their data and no one else
+  const username = req.query.username;
+  const userBalance = await getUserBalance(username);
+  const userOrder = await getUserOrders(username);
 
-    res.status(200).send({...userBalance , ...userOrder});
-})
+  res.status(200).send({ ...userBalance, ...userOrder });
+});
 
 app.get("/check", auth, (req, res) => {
   res.status(200).send({ message: "Checking auth middleware.." });
