@@ -35,3 +35,21 @@ type IOrders = {
     asset: string, // "BTC" | "ETH" etc
     type: "buy" | "sell"
 }
+
+export type ICandleDuration = "1m" | "5m" | "15m" | "30m";
+
+export enum CandleDuration {
+  OneMinute = "1m",
+  FiveMinutes = "5m",
+  FifteenMinutes = "15m",
+  ThirtyMinutes = "30m",
+}
+
+export type CandleTable = "candlestick_1m" | "candlestick_5m" | "candlestick_15m" | "candlestick_30m"
+
+export type CandleQuery = {
+  asset: string;
+  duration: ICandleDuration;   // "1m" | "5m" | "15m" | "30m"
+  startTime: string;           // ISO string or epoch ms string
+  endTime: string;
+};

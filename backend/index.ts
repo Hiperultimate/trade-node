@@ -14,6 +14,8 @@ import { getUserBalance } from "./db_query/getUserBalance";
 import { getUserOrders } from "./db_query/getUserOrders";
 import { removeAssetFromUser } from "./db_query/removeAssetFromUser";
 import { transferRequiredBalanceAmt } from "./db_query/transferRequiredBalanceAmt";
+import { getCandleData } from "./db_query/getCandleData";
+import type { CandleQuery, ICandleDuration } from "./types";
 
 const app = express();
 const port = 8080;
@@ -180,9 +182,32 @@ app.get("/order", async (req: Request<{}, {}, {}, UserOrder>, res) => {
   res.status(200).send({ ...userBalance, ...userOrder });
 });
 
-app.get("/check", auth, (req, res) => {
-  res.status(200).send({ message: "Checking auth middleware.." });
-});
+app.get("/candles", async (req : Request<{}, any, any, CandleQuery>,res) => {
+    let {asset, duration: durationRaw, startTime: startTimeRaw, endTime: endTimeRaw} = req.query;
+    const VALID_DURATIONS: ICandleDuration[] = ["1m", "5m", "15m", "30m"];
+    // Validate duration
+    if (!VALID_DURATIONS.includes(durationRaw as ICandleDuration)) {
+      return res.status(400).json({ error: "Invalid duration. Use 1m|5m|15m|30m" });
+    }
+    const duration = durationRaw as ICandleDuration;
+
+    const start = new Date(startTimeRaw);
+    const end = new Date(endTimeRaw);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return res.status(400).json({ error: "Invalid startTime or endTime" });
+    }
+    if (start > end) {
+      return res.status(400).json({ error: "startTime must be <= endTime" });
+    }
+
+    try {
+      const rows = await getCandleData(asset, duration, start, end);
+      return res.json(rows);
+    } catch (err) {
+      console.error("getCandleData error:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+})
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}...`);
