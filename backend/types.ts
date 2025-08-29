@@ -51,3 +51,9 @@ export type CandleQuery = {
   startTime: string;           // ISO string or epoch ms string
   endTime: string;
 };
+
+export interface IPubQuotes {
+    symbol : string,
+    bidPrice : number, 
+    askPrice : number,
+}

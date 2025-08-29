@@ -4,7 +4,7 @@ import express, {
   type Response,
 } from "express";
 import cors from "cors";
-import { buy_orders, users } from "./store";
+import { buy_orders, tradeManager, users } from "./store";
 import jwt from "jsonwebtoken";
 import { getLatestAssetPrice } from "./db_query/getLatestAssetPrice";
 import { checkUserTokenLimit } from "./db_query/checkUserTokenLimit";
@@ -16,6 +16,7 @@ import { removeAssetFromUser } from "./db_query/removeAssetFromUser";
 import { transferRequiredBalanceAmt } from "./db_query/transferRequiredBalanceAmt";
 import { getCandleData } from "./db_query/getCandleData";
 import type { CandleQuery, ICandleDuration } from "./types";
+import { initiateTradeManager } from "./auto_sell/run";
 
 const app = express();
 const port = 8080;
@@ -25,7 +26,6 @@ app.use(cors());
 app.use(express.json());
 
 const auth = (req: Request, res: Response, next: NextFunction) => {
-  console.log("Checking req : ", req.headers.auth_token);
   const auth_token = req.headers.auth_token as string | undefined;
   if (!auth_token) {
     return res.status(401).send({ message: "Missing auth token" });
@@ -115,7 +115,7 @@ app.post("/order/open", auth, async (req, res) => {
       "USD",
       totalPrice
     );
-    const isAssetTransferred = await giveUserAsset(
+    const assetId = await giveUserAsset(
       username,
       asset,
       assetDetails.ask_price,
@@ -123,13 +123,15 @@ app.post("/order/open", auth, async (req, res) => {
       qty
     );
 
-    if (!(isBalanceDeducted || isAssetTransferred === undefined)) {
+    if (stopLoss && takeProfit) {
+      tradeManager[asset]?.addOrder(assetId!, stopLoss, takeProfit);
+    }
+
+    if (!(isBalanceDeducted || assetId === undefined)) {
       res.status(404).send({ message: "Something went wrong..." });
     }
 
-    res
-      .status(200)
-      .send({ message: "Asset bought successfully", id: isAssetTransferred });
+    res.status(200).send({ message: "Asset bought successfully", id: assetId });
   }
 });
 
@@ -182,33 +184,41 @@ app.get("/order", async (req: Request<{}, {}, {}, UserOrder>, res) => {
   res.status(200).send({ ...userBalance, ...userOrder });
 });
 
-app.get("/candles", async (req : Request<{}, any, any, CandleQuery>,res) => {
-    let {asset, duration: durationRaw, startTime: startTimeRaw, endTime: endTimeRaw} = req.query;
-    const VALID_DURATIONS: ICandleDuration[] = ["1m", "5m", "15m", "30m"];
-    // Validate duration
-    if (!VALID_DURATIONS.includes(durationRaw as ICandleDuration)) {
-      return res.status(400).json({ error: "Invalid duration. Use 1m|5m|15m|30m" });
-    }
-    const duration = durationRaw as ICandleDuration;
+app.get("/candles", async (req: Request<{}, any, any, CandleQuery>, res) => {
+  let {
+    asset,
+    duration: durationRaw,
+    startTime: startTimeRaw,
+    endTime: endTimeRaw,
+  } = req.query;
+  const VALID_DURATIONS: ICandleDuration[] = ["1m", "5m", "15m", "30m"];
+  // Validate duration
+  if (!VALID_DURATIONS.includes(durationRaw as ICandleDuration)) {
+    return res
+      .status(400)
+      .json({ error: "Invalid duration. Use 1m|5m|15m|30m" });
+  }
+  const duration = durationRaw as ICandleDuration;
 
-    const start = new Date(startTimeRaw);
-    const end = new Date(endTimeRaw);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-      return res.status(400).json({ error: "Invalid startTime or endTime" });
-    }
-    if (start > end) {
-      return res.status(400).json({ error: "startTime must be <= endTime" });
-    }
+  const start = new Date(startTimeRaw);
+  const end = new Date(endTimeRaw);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return res.status(400).json({ error: "Invalid startTime or endTime" });
+  }
+  if (start > end) {
+    return res.status(400).json({ error: "startTime must be <= endTime" });
+  }
 
-    try {
-      const rows = await getCandleData(asset, duration, start, end);
-      return res.json(rows);
-    } catch (err) {
-      console.error("getCandleData error:", err);
-      return res.status(500).json({ error: "Internal server error" });
-    }
-})
+  try {
+    const rows = await getCandleData(asset, duration, start, end);
+    return res.json(rows);
+  } catch (err) {
+    console.error("getCandleData error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}...`);
+  initiateTradeManager(); // Once DB is out we can transfer this logic to another server for better scaling
 });
