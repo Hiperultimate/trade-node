@@ -16,11 +16,9 @@ export type Users = {
 };
 
 export type IFetchAssetDetails = {
-    time: Date,
-    symbol: string,
     bid_price: number,
     ask_price: number
-}[]
+}
 
 export type IUserOrders = {
   [order_id: string]: IOrders;

@@ -1,7 +1,12 @@
-import timescaleClient from "../db_connection/timescale_db";
+import redisClient from "../db_connection/redis_db";
 import type { IFetchAssetDetails } from "../types";
 
-export async function getLatestAssetPrice (asset: string) {
-    const data = await timescaleClient`SELECT * FROM quotes WHERE symbol=${asset} ORDER BY time DESC LIMIT 1;` as IFetchAssetDetails;
-    return data[0]!;
+type IAssetFetch = {
+    ask : string,
+    bid : string
+};
+
+export async function getLatestAssetPrice (asset: string) : Promise<IFetchAssetDetails>{
+    const assetPrice = await redisClient.hgetall(`asset:${asset}`) as unknown as IAssetFetch;
+    return {ask_price : Number(assetPrice.ask) , bid_price : Number(assetPrice.bid)};
 }
