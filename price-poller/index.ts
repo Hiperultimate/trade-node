@@ -25,8 +25,8 @@ ws.addEventListener('message',async (event) => {
     console.log("Base Price : ", response.data.P);
 
     const fetchedPrice = Number(response.data.P);
-    const bidPrice = fetchedPrice + fetchedPrice * bidPriceIncrementRate;
-    const askPrice = fetchedPrice - fetchedPrice * askPriceDecrementRate;
+    const bidPrice = fetchedPrice - fetchedPrice * bidPriceIncrementRate;
+    const askPrice = fetchedPrice + fetchedPrice * askPriceDecrementRate;
     console.log("New price : ", bidPrice, askPrice);
     await client.publish("BTC" , JSON.stringify({symbol: "BTC", askPrice, bidPrice}));
 })
