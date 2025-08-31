@@ -5,9 +5,10 @@ import TradingPanel from '@/components/TradingPanel';
 import PositionsList from '@/components/PositionsList';
 import NavBar from '@/components/NavBar';
 import useLiveAssetPrice from "@/hooks/use-liveAssetPrice";
+import { Card } from '@/components/ui/card';
 
 const Trading = () => {
-  const [selectedAsset, setSelectedAsset] = useState('BTC');
+  const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
 
   // We will connect to WS to fetch latest price list
   useLiveAssetPrice();
@@ -15,13 +16,13 @@ const Trading = () => {
   return (
     <div className="h-screen bg-background flex flex-col">
       {/* Header */}
-      <NavBar/>
+      <NavBar />
 
       {/* Main Content */}
       <div className="flex-1 flex gap-4 p-4">
         {/* Left Panel - Market Watch */}
         <div className="w-80 flex flex-col">
-          <AssetList 
+          <AssetList
             selectedAsset={selectedAsset}
             onAssetSelect={setSelectedAsset}
           />
@@ -30,10 +31,14 @@ const Trading = () => {
         {/* Center - Chart and Positions */}
         <div className="flex-1 flex flex-col gap-4">
           {/* Chart */}
-          <div className="flex-1">
-            <TradingChart selectedAsset={selectedAsset} />
-          </div>
-          
+          {selectedAsset ? (
+            <div className="flex-1">
+              <TradingChart selectedAsset={selectedAsset} />
+            </div>
+          ) : (
+            <Card className="flex-1 bg-panel-bg border-panel-border h-full"></Card>
+          )}
+
           {/* Open Positions */}
           <div className="h-48">
             <PositionsList />
@@ -42,7 +47,7 @@ const Trading = () => {
 
         {/* Right Panel - Trading */}
         <div className="w-80 flex flex-col">
-          <TradingPanel 
+          <TradingPanel
             selectedAsset={selectedAsset}
             currentPrice={108782.41} // This would come from real data
           />
