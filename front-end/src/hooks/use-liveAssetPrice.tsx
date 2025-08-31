@@ -1,33 +1,18 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useWebSocket } from "./use-websocket";
+import { IQuotes } from "@/types";
+import { useAssetPriceList } from "@/store/assetPriceList";
 
-export interface IQuotes {
-  symbol: string;
-  bidPrice: number;
-  askPrice: number;
-}
-
-type IAssetList = Record<string, Omit<IQuotes,"symbol">>
-
+// Connects to WS server and keeps updating price for assetList
 function useLiveAssetPrices() {
-    const [assetList, setAssetList] = useState<IAssetList>({});
+    const setAssetList = useAssetPriceList((s) => s.updateAssetList);
     const getLiveAssetPrice = useWebSocket<IQuotes>(import.meta.env.VITE_WS_FEEDER as string);
-    
 
     useEffect(() => {
         if (getLiveAssetPrice) { 
-            setAssetList(prev => { 
-                const toAdd = {};
-                toAdd[getLiveAssetPrice.symbol] = {
-                  bidPrice: getLiveAssetPrice.bidPrice,
-                  askPrice: getLiveAssetPrice.askPrice,
-                };
-                return { ...prev, ...toAdd };
-            })
+            setAssetList(getLiveAssetPrice);
         }
-    }, [getLiveAssetPrice]);
-
-    return assetList;
+    }, [getLiveAssetPrice, setAssetList]);
 
 }
 

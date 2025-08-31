@@ -4,9 +4,13 @@ import TradingChart from '@/components/TradingChart';
 import TradingPanel from '@/components/TradingPanel';
 import PositionsList from '@/components/PositionsList';
 import NavBar from '@/components/NavBar';
+import useLiveAssetPrice from "@/hooks/use-liveAssetPrice";
 
 const Trading = () => {
   const [selectedAsset, setSelectedAsset] = useState('BTC');
+
+  // We will connect to WS to fetch latest price list
+  useLiveAssetPrice();
 
   return (
     <div className="h-screen bg-background flex flex-col">
