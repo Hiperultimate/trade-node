@@ -71,21 +71,22 @@ app.post("/signin", (req, res) => {
   const password = req.body.password;
 
   if (!users[username]) {
-    res.send({
+    res.status(404).send({
       message: "User does not have an account, please signup",
-      status: 404,
     });
     return;
   }
 
+  const userBalance = users[username]?.balance;
+
   if (users[username].password !== password) {
-    res.status(404).send({ message: "User password incorrect" });
+    res.status(401).send({ message: "User password incorrect"});
     return;
   }
 
   const token = jwt.sign({ username, password }, privateKey);
 
-  res.json({ auth_token: token });
+  res.status(200).send({ auth_token: token, balance: userBalance });
 });
 
 // API endpoint to buy an order
