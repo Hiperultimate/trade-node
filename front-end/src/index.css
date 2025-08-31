@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Trading Platform Dark Theme */
+    --background: 210 11% 7%;
+    --foreground: 210 10% 92%;
+
+    --card: 210 12% 10%;
+    --card-foreground: 210 10% 92%;
+
+    --popover: 210 12% 10%;
+    --popover-foreground: 210 10% 92%;
+
+    --primary: 142 69% 58%;
+    --primary-foreground: 210 12% 10%;
+
+    --secondary: 210 12% 12%;
+    --secondary-foreground: 210 10% 92%;
+
+    --muted: 210 12% 16%;
+    --muted-foreground: 210 10% 65%;
+
+    --accent: 210 12% 16%;
+    --accent-foreground: 210 10% 92%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 210 12% 20%;
+    --input: 210 12% 16%;
+    --ring: 142 69% 58%;
+
+    --radius: 0.375rem;
+
+    /* Trading specific colors */
+    --buy-color: 142 69% 58%;
+    --sell-color: 0 84% 60%;
+    --profit-color: 142 69% 58%;
+    --loss-color: 0 84% 60%;
+    --neutral-color: 210 10% 65%;
+
+    /* Chart colors */
+    --chart-up: 142 69% 58%;
+    --chart-down: 0 84% 60%;
+    --chart-grid: 210 12% 20%;
+    
+    /* Panel backgrounds */
+    --panel-bg: 210 12% 10%;
+    --panel-border: 210 12% 20%;
+    
+    /* Hover states */
+    --hover-bg: 210 12% 14%;
+    --active-bg: 210 12% 18%;
+
+    /* Status colors */
+    --warning: 38 92% 50%;
+    --info: 221 83% 53%;
+
+    /* Gradients */
+    --gradient-buy: linear-gradient(135deg, hsl(var(--buy-color)), hsl(var(--buy-color) / 0.8));
+    --gradient-sell: linear-gradient(135deg, hsl(var(--sell-color)), hsl(var(--sell-color) / 0.8));
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 20px rgb(142 177 148 / 0.3);
+
+    /* Animation */
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.1s ease-out;
+
+    --sidebar-background: 210 12% 8%;
+    --sidebar-foreground: 210 10% 92%;
+    --sidebar-primary: 142 69% 58%;
+    --sidebar-primary-foreground: 210 12% 10%;
+    --sidebar-accent: 210 12% 14%;
+    --sidebar-accent-foreground: 210 10% 92%;
+    --sidebar-border: 210 12% 20%;
+    --sidebar-ring: 142 69% 58%;
+  }
+
+  .dark {
+    /* Same as root since we're using dark theme by default */
+    --background: 210 11% 7%;
+    --foreground: 210 10% 92%;
+    --card: 210 12% 10%;
+    --card-foreground: 210 10% 92%;
+    --popover: 210 12% 10%;
+    --popover-foreground: 210 10% 92%;
+    --primary: 142 69% 58%;
+    --primary-foreground: 210 12% 10%;
+    --secondary: 210 12% 12%;
+    --secondary-foreground: 210 10% 92%;
+    --muted: 210 12% 16%;
+    --muted-foreground: 210 10% 65%;
+    --accent: 210 12% 16%;
+    --accent-foreground: 210 10% 92%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 210 12% 20%;
+    --input: 210 12% 16%;
+    --ring: 142 69% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
