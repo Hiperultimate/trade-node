@@ -3,3 +3,8 @@ export interface IQuotes {
   bidPrice: number;
   askPrice: number;
 }
+
+export type ISignUpSuccess = {
+    balance: { qty: number },
+    auth_token : string,
+}

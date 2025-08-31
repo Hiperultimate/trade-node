@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import axios, { AxiosError, AxiosResponse } from 'axios';
+import { useMutation } from '@tanstack/react-query';
 
 interface SignupDialogue {
   children: React.ReactNode;
@@ -20,10 +22,31 @@ const SignupDialog = ({ children }: SignupDialogue) => {
   const [open, setOpen] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSignup = async () => {
+  const { mutate: invokeSignupApi, isPending: loading} = useMutation({
+    mutationFn: async () => {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND}/signup`,
+        { username, password }
+      );
+      return response.data;
+    },
+    onSuccess: (data: AxiosResponse) => {
+      toast({
+        title: "Account Created",
+        description: `Congratulations, your account has been created.`,
+      });
+    },
+    onError: (err: AxiosError<{ message: string }>) => {
+      toast({
+        title: "Something went wrong...",
+        description: `${err.response.data.message}`,
+      });
+    },
+  });
+
+  const handleSignup = () => {
     if (!username || !password) {
       toast({
         title: "Error",
@@ -33,22 +56,7 @@ const SignupDialog = ({ children }: SignupDialogue) => {
       return;
     }
 
-    setLoading(true);
-    
-    // Simulate login API call
-    setTimeout(() => {
-      // Mock successful login
-      
-      toast({
-        title: "Success",
-        description: `Account Created Successfully`,
-      });
-      
-      setOpen(false);
-      setUsername('');
-      setPassword('');
-      setLoading(false);
-    }, 1000);
+    invokeSignupApi();
   };
 
   return (

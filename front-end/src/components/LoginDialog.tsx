@@ -11,6 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useMutation } from "@tanstack/react-query";
+import axios, { AxiosError } from "axios";
+import { useUserSession } from '@/store/userData';
+import { ISignUpSuccess } from '@/types';
 
 interface LoginDialogProps {
   isLoggedIn: boolean;
@@ -22,10 +26,38 @@ const LoginDialog = ({ isLoggedIn, onLogin, children }: LoginDialogProps) => {
   const [open, setOpen] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const setUserState = useUserSession((s) => s.updateUserSession);
 
-  const handleLogin = async () => {
+  const { mutate: invokeLoginApi, isPending: loading } = useMutation({
+    mutationFn: async () => {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND}/signin`,
+        { username, password }
+      );
+      return response.data;
+    },
+    onSuccess: (data: ISignUpSuccess) => {
+      setUserState({
+        balance: data.balance,
+        auth_token: data.auth_token,
+        username: username,
+      });
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${username}!`,
+      });
+    },
+    onError: (err: AxiosError<{ message: string }>) => {
+      toast({
+        title: "Something went wrong...",
+        description: `${err.response.data.message}`,
+      });
+    },
+  });
+  
+
+  const handleLogin = () => {
     if (!username || !password) {
       toast({
         title: "Error",
@@ -35,26 +67,7 @@ const LoginDialog = ({ isLoggedIn, onLogin, children }: LoginDialogProps) => {
       return;
     }
 
-    setLoading(true);
-    
-    // Simulate login API call
-    setTimeout(() => {
-      // Mock successful login
-      onLogin({
-        username,
-        balance: 50000.00 // Mock balance
-      });
-      
-      toast({
-        title: "Login Successful",
-        description: `Welcome back, ${username}!`,
-      });
-      
-      setOpen(false);
-      setUsername('');
-      setPassword('');
-      setLoading(false);
-    }, 1000);
+    invokeLoginApi();
   };
 
   if (isLoggedIn) {
@@ -112,7 +125,7 @@ const LoginDialog = ({ isLoggedIn, onLogin, children }: LoginDialogProps) => {
             disabled={loading}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "Logging in..." : "Log in"}
           </Button>
         </div>
       </DialogContent>
