@@ -5,6 +5,6 @@ export interface IQuotes {
 }
 
 export type ISignUpSuccess = {
-    balance: { qty: number },
+    balance: { USD : { qty: number }},
     auth_token : string,
 }
