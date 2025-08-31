@@ -14,19 +14,21 @@ const streamList = streams.map(symbol =>
 const binanceUrl = `${binanceWsURL}stream?streams=${streamList}`;
 console.log(binanceUrl);
 
-const bidPriceIncrementRate = 0.0005;
-const askPriceDecrementRate = 0.0005;
+const bidPriceIncrementRate = 0.001;
+const askPriceDecrementRate = 0.001;
 
 let ws = new WebSocket(binanceUrl);
 
 // Streams in order for variable : streams
 ws.addEventListener('message',async (event) => {
     const response : BinanceMarkPriceStreamMessage = JSON.parse(event.data);
-    console.log("Base Price : ", response.data.P);
-
+    const symbol = response.data.s;
     const fetchedPrice = Number(response.data.P);
     const bidPrice = fetchedPrice - fetchedPrice * bidPriceIncrementRate;
     const askPrice = fetchedPrice + fetchedPrice * askPriceDecrementRate;
-    console.log("New price : ", bidPrice, askPrice);
-    await client.publish("BTC" , JSON.stringify({symbol: "BTC", askPrice, bidPrice}));
+    const payload = JSON.stringify({ symbol: symbol, askPrice, bidPrice });
+    
+    console.log(`Base Price : ${response.data.P} :: New Price : ${payload}`);
+  
+    await client.publish(symbol, payload);
 })
