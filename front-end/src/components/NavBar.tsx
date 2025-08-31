@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import LoginDialog from "./LoginDialog";
 import SignupDialog from "./SignupDialog";
+import { useUserSession } from "@/store/userData";
 
 interface UserData {
   username: string;
@@ -9,14 +9,17 @@ interface UserData {
 }
 
 const NavBar = () => {
-  const [user, setUser] = useState<UserData | null>(null);
+  const user = useUserSession((s) => s.user);
+  const updateUserSession = useUserSession((s) => s.updateUserSession);
+
 
   const handleLogin = (userData: UserData) => {
-    setUser(userData);
+    // Fetch api through tanstack
+    // setUser(userData);
   };
 
   const handleLogout = () => {
-    setUser(null);
+    updateUserSession(null);
   };
 
   return (
@@ -29,12 +32,12 @@ const NavBar = () => {
       </div>
 
       <div className="flex items-center space-x-4">
-        {user ? (
+        {user !== null ? (
           <>
             <div className="text-sm text-foreground">
               <span className="text-muted-foreground">Balance: </span>
               <span className="font-mono text-primary">
-                ${user.balance.toLocaleString()}
+                ${user.balance.USD.qty.toLocaleString()}
               </span>
             </div>
             <div className="text-sm text-muted-foreground">

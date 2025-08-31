@@ -1,28 +1,32 @@
 import { create } from "zustand";
-import { IQuotes } from "@/types";
-
 
 type IUser = {
-  balance: { qty: number };
+  balance: { USD : {qty: number} };
   username: string;
   auth_token: string;
 };
 
 interface IUserStore {
-  user: IUser;
-  updateUserSession: (userDetails: IUser) => void;
+  user: IUser | null;
+  updateUserSession: (userDetails: IUser | null) => void;
 }
 
 export const useUserSession = create<IUserStore>((set) => ({
   // initialize empty user (assert type)
-  user: {} as IUser,
+  user: null as IUser,
 
-  updateUserSession: (userData: Partial<IUser>) => {
-    set((state) => ({
-      user: {
-        ...state.user,
-        ...userData,
-      },
-    }));
+  updateUserSession: (userData: IUser | null) => {
+    if (userData === null) {
+      set((state) => ({
+        user: null
+      }));
+    } else {
+      set((state) => ({
+        user: {
+          ...state.user,
+          ...userData,
+        },
+      }));
+    }
   },
 }));
