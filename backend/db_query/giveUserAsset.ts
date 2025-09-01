@@ -1,4 +1,4 @@
-import { users, buy_orders } from "../store";
+import { users, holdingPositions } from "../store";
 import { v4 as uuid } from "uuid";
 
 export async function giveUserAsset(
@@ -6,22 +6,32 @@ export async function giveUserAsset(
   asset: string,
   assetPrice: number,
   leverage: number,
-  qty: number
+  qty: number,
+  stopLoss: number | null = null,
+  takeProfit: number | null = null
 ): Promise<undefined | string> {
   // Simulating a DB call
   try {
     const id = uuid();
     return await new Promise((res, _) => {
-      // push order ID in buy_orders
-      buy_orders[id] = {
-        username: username,
-        asset: asset,
-        asset_bought_price: assetPrice,
-        leverage: leverage,
-        margin: assetPrice * qty, // The total price invested in the stock
-        qty: qty,
+      // push order ID in holdingPositions
+      if (!holdingPositions[username]) {
+        holdingPositions[username] = [];
+      }
+
+      holdingPositions[username]?.push({
+        username,
+        order_id: id,
+        asset,
+        entryPrice: assetPrice,
+        qty,
+        margin: assetPrice * qty,
+        stopLoss,
+        takeProfit,
+        leverage,
         type: "buy",
-      };
+      });
+
       // push order ID in users.user_orders
       users[username]!.user_orders.push(id);
       res(id);

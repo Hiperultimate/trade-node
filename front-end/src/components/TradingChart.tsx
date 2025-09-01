@@ -71,13 +71,13 @@ const TradingChart = ({ selectedAsset }: TradingChartProps) => {
         console.log("Invalid data : " , JSON.stringify(record));
       }
       return {
-        time : new Date(record.bucket).getTime() / 1000 as any,
+        time: (new Date(record.bucket).getTime() / 1000) as UTCTimestamp,
         symbol: record.symbol,
         open: record.open,
         high: record.high,
         low: record.low,
-        close: record.close
-      }
+        close: record.close,
+      };
     })
 
     setChartData(cleanChart);

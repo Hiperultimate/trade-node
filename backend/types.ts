@@ -11,27 +11,13 @@ export type Users = {
   [userId: string]: {
     password: string,
     balance: UserBalanceMap,
-    user_orders: string[] // Will store order_id of IUserOrders    
+    user_orders: string[] // Will store order_id of IPositions    
   };
 };
 
 export type IFetchAssetDetails = {
     bid_price: number,
     ask_price: number
-}
-
-export type IUserOrders = {
-  [order_id: string]: IOrders;
-};
-
-type IOrders = {
-    username: string,
-    qty: number, // 0.002
-    margin: number, // 100 (money spent in $)
-    leverage: number, // (1-100x multipler)
-    asset_bought_price: number, // 110000
-    asset: string, // "BTC" | "ETH" etc
-    type: "buy" | "sell"
 }
 
 export type ICandleDuration = "1m" | "5m" | "15m" | "30m";
@@ -57,3 +43,16 @@ export interface IPubQuotes {
     bidPrice : number, 
     askPrice : number,
 }
+
+export type IPosition = {
+  username: string,
+  order_id: string;
+  asset: string;
+  entryPrice: number;
+  qty: number;
+  margin: number;
+  stopLoss: number | null;
+  takeProfit: number | null;
+  leverage: number,
+  type: "buy" | "sell";
+}; 

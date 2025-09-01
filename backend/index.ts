@@ -4,19 +4,18 @@ import express, {
   type Response,
 } from "express";
 import cors from "cors";
-import { buy_orders, tradeManager, users } from "./store";
+import { holdingPositions, users } from "./store";
 import jwt from "jsonwebtoken";
 import { getLatestAssetPrice } from "./db_query/getLatestAssetPrice";
 import { checkUserTokenLimit } from "./db_query/checkUserTokenLimit";
 import { deductUserBalance } from "./db_query/deductUserBalance";
-import { giveUserAsset } from "./db_query/giveUserAsset";
 import { getUserBalance } from "./db_query/getUserBalance";
 import { getUserOrders } from "./db_query/getUserOrders";
-import { removeAssetFromUser } from "./db_query/removeAssetFromUser";
-import { transferRequiredBalanceAmt } from "./db_query/transferRequiredBalanceAmt";
 import { getCandleData } from "./db_query/getCandleData";
 import type { CandleQuery, ICandleDuration } from "./types";
 import { initiateTradeManager } from "./auto_sell/run";
+import createPosition from "./db_query/createPosition";
+import { removeAssetAndTransferBalance } from "./db_query/removeAssetAndTransferBalance";
 
 const app = express();
 const port = 8080;
@@ -92,11 +91,17 @@ app.post("/signin", (req, res) => {
 // API endpoint to buy an order
 app.post("/order/open", auth, async (req, res) => {
   // Ignoring stopLoss and takeProfit for now
-  let { type, qty, asset, stopLoss, takeProfit, username } = req.body;
+  let { type, qty, asset, stopLoss, takeProfit, username, leverage } = req.body;
   qty = Number(qty);
+  stopLoss = Number(stopLoss);
+  takeProfit = Number(takeProfit);
+  leverage = Number(leverage);
 
   if (type === "buy") {
     // get asset details like asset price
+    if (leverage < 0 || leverage > 100) {
+      res.status(404).send({ message: "Invalid leverage selected. Please choose between or at 1-100" });
+    }
     const assetDetails = await getLatestAssetPrice("BTC");
     const totalPrice = assetDetails.ask_price * qty;
 
@@ -116,17 +121,19 @@ app.post("/order/open", auth, async (req, res) => {
       "USD",
       totalPrice
     );
-    const assetId = await giveUserAsset(
+
+    // Transfers asset to user
+    const assetId = createPosition(
       username,
       asset,
       assetDetails.ask_price,
-      1,
-      qty
+      totalPrice,
+      qty,
+      stopLoss,
+      takeProfit,
+      leverage,
+      type
     );
-
-    if (stopLoss && takeProfit) {
-      tradeManager[asset]?.addOrder(assetId!, stopLoss, takeProfit);
-    }
 
     if (!(isBalanceDeducted || assetId === undefined)) {
       res.status(404).send({ message: "Something went wrong..." });
@@ -138,31 +145,26 @@ app.post("/order/open", auth, async (req, res) => {
 
 app.post("/order/close", auth, async (req, res) => {
   // Ignoring stopLoss and takeProfit for now
-  let { order_id } = req.body;
-  const orderDetails = buy_orders[order_id];
+  let { order_id, username } = req.body;
+  const orderDetails = holdingPositions[username]?.find((item) => item.order_id === order_id);
 
   if (!orderDetails) {
     res.status(404).send({ message: "Order not found..." });
     return;
   }
 
-  const { type, qty, username } = orderDetails;
+  const { type, qty } = orderDetails;
 
   if (type === "buy") {
     // get asset details like asset price
     const assetDetails = await getLatestAssetPrice("BTC");
-    const totalPrice = assetDetails.ask_price * qty;
 
     // When doing something like this, its better to run a transaction through your DB so it reverts everything in case it fails.
     // For now this will do
 
-    const isAssetRemoved = await removeAssetFromUser(username, order_id);
-    const isBalanceTransfered = await transferRequiredBalanceAmt(
-      username,
-      totalPrice
-    );
+    const isAssetRemovedAndBalanceTransferred = await removeAssetAndTransferBalance(username, order_id, assetDetails.bid_price);
 
-    if (!(isAssetRemoved && isBalanceTransfered)) {
+    if (!isAssetRemovedAndBalanceTransferred) {
       res.status(404).send({ message: "Something went wrong..." });
     }
 

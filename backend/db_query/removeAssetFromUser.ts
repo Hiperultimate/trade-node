@@ -1,4 +1,4 @@
-import { buy_orders, users } from "../store";
+import { holdingPositions, users } from "../store";
 
 export async function removeAssetFromUser(username: string, order_id: string) {
   try {
@@ -9,8 +9,10 @@ export async function removeAssetFromUser(username: string, order_id: string) {
     );
 
     const isOrderDeleted = await new Promise((res, _) => {
-      // removing order_id from buy_orders
-      delete buy_orders[order_id];
+      // removing order_id from holdingPositions
+      holdingPositions[username] = holdingPositions[username]!.filter(
+        (item) => item.order_id !== order_id
+      );
       res(true);
     });
     return isOrderDeleted!;

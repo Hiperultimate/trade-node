@@ -1,6 +1,4 @@
-import { TradeManager } from "./auto_sell/trade_manager";
-import type { IUserOrders, Users } from "./types";
+import type { IPosition, Users } from "./types";
 
 export const users : Users = {};
-export const buy_orders : IUserOrders = {}; // Consits of all users buy orders
-export const tradeManager : Record<string, TradeManager>  = {};
+export const holdingPositions: Record< string, IPosition[]> = {}; // username as key
