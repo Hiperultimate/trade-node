@@ -7,9 +7,11 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useAssetPriceList } from '@/store/assetPriceList';
 import { ICandleStickFetch } from '@/types';
+import { UTCTimestamp } from 'lightweight-charts';
+import CandlestickChart from "./CandlestickChart";
 
 interface ChartData {
-  time: Date;
+  time: UTCTimestamp;
   open: number;
   high: number;
   low: number;
@@ -65,8 +67,11 @@ const TradingChart = ({ selectedAsset }: TradingChartProps) => {
     if (!candleStickData) return;
     const cleanChart = candleStickData.map(record => { 
       // const time = new Date(record.bucket);
+      if(record.low > record.high){
+        console.log("Invalid data : " , JSON.stringify(record));
+      }
       return {
-        time : new Date(record.bucket),
+        time : new Date(record.bucket).getTime() / 1000 as any,
         symbol: record.symbol,
         open: record.open,
         high: record.high,
@@ -76,7 +81,7 @@ const TradingChart = ({ selectedAsset }: TradingChartProps) => {
     })
 
     setChartData(cleanChart);
-    console.log("Getting chart data from DB:", cleanChart);
+    // console.log("Getting chart data from DB:", cleanChart);
 
 
   },[candleStickData])
@@ -125,6 +130,7 @@ const TradingChart = ({ selectedAsset }: TradingChartProps) => {
         ) : (
           <div>
             Display Chart
+            <CandlestickChart candleData={chartData}/>
           </div>
         )}
       </div>
