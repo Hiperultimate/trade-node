@@ -8,8 +8,8 @@ export async function transferRequiredBalanceAmt(username: string, order_id: str
   const { entryPrice, qty, leverage, margin } = getOrderDetails;
 
   if (currentAssetPrice === undefined) {
-    const { ask_price } = await getLatestAssetPrice(getOrderDetails.asset);
-    currentAssetPrice = ask_price;
+    const { bid_price } = await getLatestAssetPrice(getOrderDetails.asset);
+    currentAssetPrice = bid_price;
   }
   
   // Calculate pnl
@@ -19,6 +19,7 @@ export async function transferRequiredBalanceAmt(username: string, order_id: str
   const amtToAdd = margin + pnl;
 
   console.log(`Crediting ${username}: Margin = ${margin}, PnL = ${pnl}, Total = ${amtToAdd}`);
+  console.log(`Entry price : ${entryPrice} | Exit price : ${currentAssetPrice}`)
 
   try {
     const isBalanceTransferred = await new Promise((res, _) => {

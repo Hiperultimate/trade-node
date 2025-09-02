@@ -8,5 +8,6 @@ type IAssetFetch = {
 
 export async function getLatestAssetPrice (asset: string) : Promise<IFetchAssetDetails>{
     const assetPrice = await redisClient.hgetall(`asset:${asset}`) as unknown as IAssetFetch;
-    return {ask_price : Number(assetPrice.ask) , bid_price : Number(assetPrice.bid)};
+    const payload = {ask_price : Number(assetPrice.ask) , bid_price : Number(assetPrice.bid)};
+    return payload;
 }

@@ -102,7 +102,7 @@ app.post("/order/open", auth, async (req, res) => {
     if (leverage < 0 || leverage > 100) {
       res.status(404).send({ message: "Invalid leverage selected. Please choose between or at 1-100" });
     }
-    const assetDetails = await getLatestAssetPrice("BTC");
+    const assetDetails = await getLatestAssetPrice(asset);
     const totalPrice = assetDetails.ask_price * qty;
 
     // check how much usd does user holds
@@ -146,6 +146,11 @@ app.post("/order/open", auth, async (req, res) => {
 app.post("/order/close", auth, async (req, res) => {
   // Ignoring stopLoss and takeProfit for now
   let { order_id, username } = req.body;
+
+  if(!order_id || !username){
+    res.status(400).send({message : "Invalid body format"});
+    return;
+  }
   const orderDetails = holdingPositions[username]?.find((item) => item.order_id === order_id);
 
   if (!orderDetails) {
@@ -153,11 +158,11 @@ app.post("/order/close", auth, async (req, res) => {
     return;
   }
 
-  const { type, qty } = orderDetails;
+  const { type, asset } = orderDetails;
 
   if (type === "buy") {
     // get asset details like asset price
-    const assetDetails = await getLatestAssetPrice("BTC");
+    const assetDetails = await getLatestAssetPrice(asset);
 
     // When doing something like this, its better to run a transaction through your DB so it reverts everything in case it fails.
     // For now this will do
