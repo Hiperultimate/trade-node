@@ -37,6 +37,7 @@ const SignupDialog = ({ children }: SignupDialogue) => {
         title: "Account Created",
         description: `Congratulations, your account has been created.`,
       });
+      setOpen(false);
     },
     onError: (err: AxiosError<{ message: string }>) => {
       toast({

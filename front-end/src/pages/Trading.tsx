@@ -49,7 +49,6 @@ const Trading = () => {
         <div className="w-80 flex flex-col">
           <TradingPanel
             selectedAsset={selectedAsset}
-            currentPrice={108782.41} // This would come from real data
           />
         </div>
       </div>
