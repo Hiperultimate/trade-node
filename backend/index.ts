@@ -97,49 +97,56 @@ app.post("/order/open", auth, async (req, res) => {
   takeProfit = Number(takeProfit);
   leverage = Number(leverage);
 
+  if (leverage < 0 || leverage > 100) {
+    res.status(404).send({ message: "Invalid leverage selected. Please choose between or at 1-100" });
+  }
+
+  // get asset details like asset price
+  const assetDetails = await getLatestAssetPrice(asset);
+  const totalPrice = assetDetails.ask_price * qty;
+
+  // check how much usd does user holds
+  const isBalanceEnough = await checkUserTokenLimit(
+    username,
+    "USD",
+    totalPrice
+  );
+  if (!isBalanceEnough)
+    res.status(404).send({ message: "Insufficient funds..." });
+
+  const isBalanceDeducted = await deductUserBalance(
+    username,
+    "USD",
+    totalPrice
+  );
+
+  // When doing something like this, its better to run a transaction through your DB so it reverts everything in case it fails.
+  // For now this will do
+
+  // Transfers asset to user
+  const assetId = createPosition(
+    username,
+    asset,
+    type === "buy" ? assetDetails.ask_price : assetDetails.bid_price,
+    totalPrice,
+    qty,
+    stopLoss,
+    takeProfit,
+    leverage,
+    type
+  );
+
+
+  if (!(isBalanceDeducted || assetId === undefined)) {
+    res.status(404).send({ message: "Something went wrong..." });
+  }
+
   if (type === "buy") {
-    // get asset details like asset price
-    if (leverage < 0 || leverage > 100) {
-      res.status(404).send({ message: "Invalid leverage selected. Please choose between or at 1-100" });
-    }
-    const assetDetails = await getLatestAssetPrice(asset);
-    const totalPrice = assetDetails.ask_price * qty;
-
-    // check how much usd does user holds
-    const isBalanceEnough = await checkUserTokenLimit(
-      username,
-      "USD",
-      totalPrice
-    );
-    if (!isBalanceEnough)
-      res.status(404).send({ message: "Insufficient funds..." });
-
-    // When doing something like this, its better to run a transaction through your DB so it reverts everything in case it fails.
-    // For now this will do
-    const isBalanceDeducted = await deductUserBalance(
-      username,
-      "USD",
-      totalPrice
-    );
-
-    // Transfers asset to user
-    const assetId = createPosition(
-      username,
-      asset,
-      assetDetails.ask_price,
-      totalPrice,
-      qty,
-      stopLoss,
-      takeProfit,
-      leverage,
-      type
-    );
-
-    if (!(isBalanceDeducted || assetId === undefined)) {
-      res.status(404).send({ message: "Something went wrong..." });
-    }
-
     res.status(200).send({ message: "Asset bought successfully", id: assetId });
+    return;
+  } else {
+    res.status(200).send({ message: "Asset shorted successfully", id: assetId });
+    return;
   }
 });
 
@@ -158,25 +165,28 @@ app.post("/order/close", auth, async (req, res) => {
     return;
   }
 
-  const { type, asset } = orderDetails;
+  const { asset , type } = orderDetails;
 
-  if (type === "buy") {
-    // get asset details like asset price
-    const assetDetails = await getLatestAssetPrice(asset);
+  // get asset details like asset price
+  const {ask_price, bid_price} = await getLatestAssetPrice(asset);
 
-    // When doing something like this, its better to run a transaction through your DB so it reverts everything in case it fails.
-    // For now this will do
-
-    const isAssetRemovedAndBalanceTransferred = await removeAssetAndTransferBalance(username, order_id, assetDetails.bid_price);
-
-    if (!isAssetRemovedAndBalanceTransferred) {
-      res.status(404).send({ message: "Something went wrong..." });
-    }
-
-    res
-      .status(200)
-      .send({ message: "Asset sold successfully", asset: assetDetails });
+  // When doing something like this, its better to run a transaction through your DB so it reverts everything in case it fails.
+  // For now this will do
+  let exitPrice :number ;
+  if(type === "buy"){
+    exitPrice = bid_price;
+  }else{
+    exitPrice = ask_price;
   }
+  const isAssetRemovedAndBalanceTransferred = await removeAssetAndTransferBalance(username, order_id, exitPrice);
+
+  if (!isAssetRemovedAndBalanceTransferred) {
+    res.status(404).send({ message: "Something went wrong..." });
+  }
+
+  res
+    .status(200)
+    .send({ message: "Asset sold successfully", asset: {ask_price , bid_price} });
 });
 
 interface UserOrder {
