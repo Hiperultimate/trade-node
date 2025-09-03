@@ -99,6 +99,7 @@ app.post("/order/open", auth, async (req, res) => {
 
   if (leverage < 0 || leverage > 100) {
     res.status(404).send({ message: "Invalid leverage selected. Please choose between or at 1-100" });
+    return;
   }
 
   // get asset details like asset price
@@ -111,8 +112,10 @@ app.post("/order/open", auth, async (req, res) => {
     "USD",
     totalPrice
   );
-  if (!isBalanceEnough)
+  if (!isBalanceEnough){
     res.status(404).send({ message: "Insufficient funds..." });
+    return;
+  }
 
   const isBalanceDeducted = await deductUserBalance(
     username,
@@ -139,6 +142,7 @@ app.post("/order/open", auth, async (req, res) => {
 
   if (!(isBalanceDeducted || assetId === undefined)) {
     res.status(404).send({ message: "Something went wrong..." });
+    return
   }
 
   if (type === "buy") {

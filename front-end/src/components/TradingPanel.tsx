@@ -67,11 +67,12 @@ const TradingPanel = ({ selectedAsset }: TradingPanelProps) => {
 
   const handleBuy = () => {
     console.log('Buy order:', { selectedAsset, quantity, price, takeProfit, stopLoss, type: 'buy' });
-    invokeTrade("buy")
+    invokeTrade("buy");
   };
 
   const handleSell = () => {
     console.log('Sell order:', { selectedAsset, quantity, price, takeProfit, stopLoss, type: 'sell' });
+    invokeTrade("sell");
   };
 
   return (
@@ -91,7 +92,7 @@ const TradingPanel = ({ selectedAsset }: TradingPanelProps) => {
         )}
       </div>
 
-      {selectedAsset && (
+      {selectedAsset && user && (
         <div className="p-4 space-y-4">
           <Tabs
             value={orderType}
