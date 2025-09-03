@@ -26,7 +26,7 @@ function CandlestickChart({ candleData }: {candleData : Candle[]}) {
         horzLines: { color: "rgba(197, 203, 206, 0.2)" },
       },
       width: chartContainerRef.current.clientWidth,
-      height: 400,
+      height: chartContainerRef.current.clientHeight,
     });
 
     chart.timeScale().fitContent();

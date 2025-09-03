@@ -141,7 +141,7 @@ const PositionsList = () => {
           <div className="text-muted-foreground text-sm">No open positions</div>
         </div>
       ) : (
-        <div className="divide-y divide-panel-border">
+        <div className="divide-y divide-panel-border h-72 overflow-y-scroll">
           {positions.map((position) => (
             <div
               key={position.id}

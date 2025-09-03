@@ -29,27 +29,25 @@ const Trading = () => {
         </div>
 
         {/* Center - Chart and Positions */}
-        <div className="flex-1 flex flex-col gap-4">
+        <div className="flex-1 grid grid-rows-[3fr_2fr] gap-4">
           {/* Chart */}
           {selectedAsset ? (
-            <div className="flex-1">
+            <div className="h-full">
               <TradingChart selectedAsset={selectedAsset} />
             </div>
           ) : (
-            <Card className="flex-1 bg-panel-bg border-panel-border h-full"></Card>
+            <Card className="bg-panel-bg border-panel-border h-full"></Card>
           )}
 
           {/* Open Positions */}
-          <div className="h-48">
+          <div className="h-full">
             <PositionsList />
           </div>
         </div>
 
         {/* Right Panel - Trading */}
         <div className="w-80 flex flex-col">
-          <TradingPanel
-            selectedAsset={selectedAsset}
-          />
+          <TradingPanel selectedAsset={selectedAsset} />
         </div>
       </div>
     </div>

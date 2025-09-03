@@ -32,7 +32,6 @@ const timeframes = [
 const TradingChart = ({ selectedAsset }: TradingChartProps) => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('5m');
   const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [currentPrice, setCurrentPrice] = useState(0);
   const selectedAssetPrice = useAssetPriceList(s => s.assetList[selectedAsset].askPrice);
 
   const {
@@ -128,8 +127,7 @@ const TradingChart = ({ selectedAsset }: TradingChartProps) => {
         {isLoading ? (
           <div>Loading...</div>
         ) : (
-          <div>
-            Display Chart
+          <div className="h-full">
             <CandlestickChart candleData={chartData}/>
           </div>
         )}
