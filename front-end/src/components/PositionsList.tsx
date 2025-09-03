@@ -208,7 +208,7 @@ const PositionsList = () => {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-4 gap-4 text-xs">
+              <div className="grid grid-cols-5 gap-4 text-xs">
                 <div>
                   <div className="text-muted-foreground mb-1">Open Price</div>
                   <div className="font-mono text-foreground">
@@ -221,6 +221,12 @@ const PositionsList = () => {
                   </div>
                   <div className="font-mono text-foreground">
                     {position.currentPrice.toLocaleString()}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground mb-1">Leverage</div>
+                  <div className="font-mono text-foreground">
+                    {position.leverage}x
                   </div>
                 </div>
                 <div>

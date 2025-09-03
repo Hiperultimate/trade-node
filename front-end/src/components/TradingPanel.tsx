@@ -11,6 +11,7 @@ import { useUserSession } from '@/store/userData';
 import { useToast } from "@/hooks/use-toast";
 
 import axios, { AxiosError } from "axios";
+import { Slider } from '@/components/ui/slider';
 
 interface TradingPanelProps {
   selectedAsset: string | null;
@@ -23,6 +24,7 @@ const TradingPanel = ({ selectedAsset }: TradingPanelProps) => {
   const [price, setPrice] = useState('');
   const [takeProfit, setTakeProfit] = useState('');
   const [stopLoss, setStopLoss] = useState('');
+  const [leverage, setLeverage] = useState(1);
   const queryClient = useQueryClient();
 
   const user = useUserSession(s => s.user);
@@ -40,7 +42,7 @@ const TradingPanel = ({ selectedAsset }: TradingPanelProps) => {
           stopLoss: stopLoss,
           takeProfit: takeProfit,
           username: user.username,
-          leverage: 1, // Add a slider for leverage
+          leverage: leverage, // Add a slider for leverage
         },
         {
           headers: {
@@ -204,6 +206,27 @@ const TradingPanel = ({ selectedAsset }: TradingPanelProps) => {
                 onChange={(e) => setStopLoss(e.target.value)}
                 className="bg-input border-border text-foreground"
               />
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="stop-loss"
+                className="text-xs text-muted-foreground"
+              >
+                Leverage
+              </Label>
+              <Slider
+                min={1}
+                max={100}
+                step={1}
+                value={[leverage]}
+                onValueChange={(val) => setLeverage(val[0])}
+              />
+              <div className="flex justify-center">
+
+              <div className="text-2xl font-semibold tabular-nums">
+                {leverage}x
+              </div>
+              </div>
             </div>
           </div>
 
