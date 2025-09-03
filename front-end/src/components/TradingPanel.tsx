@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { useAssetPriceList } from '@/store/assetPriceList';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -11,7 +12,6 @@ import { useUserSession } from '@/store/userData';
 import { useToast } from "@/hooks/use-toast";
 
 import axios, { AxiosError } from "axios";
-import { Slider } from '@/components/ui/slider';
 
 interface TradingPanelProps {
   selectedAsset: string | null;

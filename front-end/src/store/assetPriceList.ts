@@ -1,13 +1,5 @@
 import { create } from "zustand";
-import { IQuotes } from "@/types";
-
-
-type IAssetList = Record<string, Omit<IQuotes,"symbol">>
-
-interface IAssetPriceList {
-  assetList: IAssetList;
-  updateAssetList: (assetDetails : IQuotes) => void
-}
+import { IAssetList, IAssetPriceList, IQuotes } from "@/types";
 
 export const useAssetPriceList = create<IAssetPriceList>((set) => ({
   assetList: {} as IAssetList,

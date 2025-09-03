@@ -32,3 +32,10 @@ export type IPositionOrder = {
 };
 
 export type IPositionResponse = { balance : string, userOrders : IPositionOrder};
+
+export type IAssetList = Record<string, Omit<IQuotes, "symbol">>;
+
+export type IAssetPriceList = {
+  assetList: IAssetList;
+  updateAssetList: (assetDetails: IQuotes) => void;
+};

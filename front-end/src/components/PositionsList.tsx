@@ -27,6 +27,7 @@ const PositionsList = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const user = useUserSession((s) => s.user);
+  const setUserPositions = useUserSession((s) => s.updateCurrentUserPositions);
   const setUserBalance = useUserSession((s) => s.updateCurrentUserBalance);
   const currentAssetPrices = useAssetPriceList((s) => s.assetList);
   const [positions, setPositions] = useState<Position[]>([]);
@@ -34,12 +35,16 @@ const PositionsList = () => {
   useQuery({
     queryKey: ["positions", user],
     queryFn: async () => {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND}/order`,
-        { params: { username: user.username } }
-      );
+      const response = await axios.get<{
+        balance: { USD: { qty: number } };
+        userOrders: IPositionOrder[];
+      }>(`${import.meta.env.VITE_BACKEND}/order`, {
+        params: { username: user.username },
+      });
       setUserBalance(response.data.balance["USD"]["qty"] || 0);
       // console.log("checking all orders : ", response.data);
+
+      setUserPositions(response.data.userOrders);
 
       const filterData = response.data.userOrders.map(
         (item: IPositionOrder) => {

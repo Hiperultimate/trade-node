@@ -1,3 +1,4 @@
+import { IPositionOrder } from "@/types";
 import { create } from "zustand";
 
 type IUser = {
@@ -8,13 +9,17 @@ type IUser = {
 
 interface IUserStore {
   user: IUser | null;
+  userPositions: IPositionOrder[],
   updateUserSession: (userDetails: IUser | null) => void;
-  updateCurrentUserBalance : (newBalance : number) => void;
+  updateCurrentUserBalance: (newBalance: number) => void;
+  updateCurrentUserPositions: (userPositions: IPositionOrder[]) => void;
 }
 
 export const useUserSession = create<IUserStore>((set) => ({
   // initialize empty user (assert type)
   user: null as IUser,
+
+  userPositions: [],
 
   updateUserSession: (userData: IUser | null) => {
     if (userData === null) {
@@ -38,5 +43,11 @@ export const useUserSession = create<IUserStore>((set) => ({
           balance : {USD : {qty : newBalance}}
         },
       }));
+  },
+
+  updateCurrentUserPositions: ( userPositions : IPositionOrder[]) => { 
+    set(() => ({
+      userPositions: userPositions
+    }));
   }
 }));

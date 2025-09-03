@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import LoginDialog from "./LoginDialog";
 import SignupDialog from "./SignupDialog";
 import { useUserSession } from "@/store/userData";
+import useCalculateAllPositionPnl from "@/hooks/use-calculatePositionPnl";
 
 interface UserData {
   username: string;
@@ -11,6 +12,7 @@ interface UserData {
 const NavBar = () => {
   const user = useUserSession((s) => s.user);
   const updateUserSession = useUserSession((s) => s.updateUserSession);
+  const activePnl = useCalculateAllPositionPnl();
 
 
   const handleLogin = (userData: UserData) => {
@@ -37,7 +39,7 @@ const NavBar = () => {
             <div className="text-sm text-foreground">
               <span className="text-muted-foreground">Balance: </span>
               <span className="font-mono text-primary">
-                ${user.balance.USD.qty.toLocaleString()}
+                ${(user.balance.USD.qty + activePnl).toLocaleString()}$
               </span>
             </div>
             <div className="text-sm text-muted-foreground">
