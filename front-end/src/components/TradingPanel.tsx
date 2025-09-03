@@ -98,12 +98,17 @@ const TradingPanel = ({ selectedAsset }: TradingPanelProps) => {
             value={orderType}
             onValueChange={(value) => setOrderType(value as "market" | "limit")}
           >
-            <TabsList className="grid w-full grid-cols-2 bg-muted">
+            {/* <TabsList className="grid w-full grid-cols-2 bg-muted">
               <TabsTrigger value="market" className="text-xs">
                 Market
               </TabsTrigger>
               <TabsTrigger value="limit" className="text-xs">
                 Limit
+              </TabsTrigger>
+            </TabsList> */}
+            <TabsList className="w-full bg-muted">
+              <TabsTrigger value="market" className="w-full text-xs">
+                Market
               </TabsTrigger>
             </TabsList>
 
@@ -126,7 +131,7 @@ const TradingPanel = ({ selectedAsset }: TradingPanelProps) => {
               </div>
             </TabsContent>
 
-            <TabsContent value="limit" className="space-y-4 mt-4">
+            {/* <TabsContent value="limit" className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label
                   htmlFor="price"
@@ -160,7 +165,7 @@ const TradingPanel = ({ selectedAsset }: TradingPanelProps) => {
                   className="bg-input border-border text-foreground"
                 />
               </div>
-            </TabsContent>
+            </TabsContent> */}
           </Tabs>
 
           <div className="space-y-4">
