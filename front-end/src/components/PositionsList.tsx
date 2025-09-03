@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import { useUserSession } from "@/store/userData";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios, { AxiosResponse } from "axios";
 import { IPositionOrder } from "@/types";
 import { useAssetPriceList } from "@/store/assetPriceList";
+import { useToast } from "@/hooks/use-toast";
 
 interface Position {
   id: string;
@@ -23,14 +24,14 @@ interface Position {
 }
 
 const PositionsList = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const user = useUserSession((s) => s.user);
   const setUserBalance = useUserSession((s) => s.updateCurrentUserBalance);
   const currentAssetPrices = useAssetPriceList((s) => s.assetList);
-  const {
-    data: allPositions,
-    isLoading,
-    isError,
-  } = useQuery({
+  const [positions, setPositions] = useState<Position[]>([]);
+  
+  useQuery({
     queryKey: ["positions", user],
     queryFn: async () => {
       const response = await axios.get(
@@ -72,7 +73,37 @@ const PositionsList = () => {
       return filterData;
     },
   });
-  const [positions, setPositions] = useState<Position[]>([]);
+
+  const { mutate : closeOrder } = useMutation({
+    mutationFn: async (orderId : string) => { 
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND}/order/close`, {
+        order_id: orderId,
+        username: user.username,
+      }, {
+        headers: {
+          "auth_token" : user.auth_token
+        }
+      });
+
+      return response.data;
+    },
+    onSuccess: (msg) => { 
+      console.log("Successfully closed the order : ", msg);
+      queryClient.invalidateQueries({queryKey: ["positions"]})
+      toast({
+        title: "Order Closed Successfully",
+        description: `Your order has been closed succesfully`,
+      });
+    },
+    onError: (err: AxiosResponse<{ message: string}>) => { 
+      console.log("Something went wrong");
+      toast({
+        title: "Something went wrong",
+        description: `${err.data.message}`,
+        variant: "destructive"
+      });
+    }
+  })
 
   // Simulate real-time P/L updates
   useEffect(() => {
@@ -111,6 +142,7 @@ const PositionsList = () => {
 
   const closePosition = (id: string) => {
     // setPositions(prev => prev.filter(pos => pos.id !== id));
+    closeOrder(id);
   };
 
   const totalPnL = positions.reduce((sum, pos) => sum + pos.pnl, 0);
