@@ -9,6 +9,7 @@ type IUser = {
 interface IUserStore {
   user: IUser | null;
   updateUserSession: (userDetails: IUser | null) => void;
+  updateCurrentUserBalance : (newBalance : number) => void;
 }
 
 export const useUserSession = create<IUserStore>((set) => ({
@@ -29,4 +30,13 @@ export const useUserSession = create<IUserStore>((set) => ({
       }));
     }
   },
+
+  updateCurrentUserBalance: ( newBalance :number ) => {
+    set((state) => ({
+        user: {
+          ...state.user,
+          balance : {USD : {qty : newBalance}}
+        },
+      }));
+  }
 }));

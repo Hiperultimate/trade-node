@@ -39,11 +39,9 @@ function CandlestickChart({ candleData }: {candleData : Candle[]}) {
       borderDownColor: "#ef5350",
       wickDownColor: "#ef5350",
     });
-    console.log(candleData)
     // ✅ Transform your API data
     const formattedData = candleData.sort((a:Candle,b:Candle)=>a.time-b.time);
-    console.log(formattedData, "from formatted data")
-
+    console.log(formattedData, "from formatted data");
 
     candleSeries.setData(formattedData);
     // resize handler

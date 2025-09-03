@@ -65,7 +65,7 @@ export async function liquidateLowValuePositions(currentAssetDetails : IPubQuote
       currentNotional = bidPrice * qty;
     } else {
       // Short (sell)
-      pnl = qty * (entryPrice - bidPrice) * leverage;
+      pnl = qty * (entryPrice - askPrice) * leverage;
       currentNotional = askPrice * qty;
     }
 

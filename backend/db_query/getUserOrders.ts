@@ -1,12 +1,13 @@
 import { holdingPositions } from "../store";
+import type { IPosition } from "../types";
 
 export async function getUserOrders(username: string) {
   try {
-    const orders = await new Promise((res, _) => {
+    const orders :IPosition[] | undefined = await new Promise((res, _) => {
       const userOrders = holdingPositions[username];
       res(userOrders);
     });
-    return orders!;
+    return orders;
   } catch (e) {
     return null; // No user found
   }

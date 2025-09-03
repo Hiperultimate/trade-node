@@ -69,6 +69,11 @@ app.post("/signin", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
+  if(username.trim().length === 0 || password.trim().length === 0){
+    res.status(404).send({message : "Invalid username or password"})
+    return;
+  }
+
   if (!users[username]) {
     res.status(404).send({
       message: "User does not have an account, please signup",
@@ -203,7 +208,7 @@ app.get("/order", async (req: Request<{}, {}, {}, UserOrder>, res) => {
   const userBalance = await getUserBalance(username);
   const userOrder = await getUserOrders(username);
 
-  res.status(200).send({ ...userBalance, ...userOrder });
+  res.status(200).send({ balance : userBalance, userOrders : userOrder });
 });
 
 app.get("/candles", async (req: Request<{}, any, any, CandleQuery>, res) => {

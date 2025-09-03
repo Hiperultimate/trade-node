@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useAssetPriceList } from '@/store/assetPriceList';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUserSession } from '@/store/userData';
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,6 +23,7 @@ const TradingPanel = ({ selectedAsset }: TradingPanelProps) => {
   const [price, setPrice] = useState('');
   const [takeProfit, setTakeProfit] = useState('');
   const [stopLoss, setStopLoss] = useState('');
+  const queryClient = useQueryClient();
 
   const user = useUserSession(s => s.user);
   const currentAssetPrice = useAssetPriceList(s => s.assetList[selectedAsset]);
@@ -47,6 +48,8 @@ const TradingPanel = ({ selectedAsset }: TradingPanelProps) => {
           },
         }
       );
+
+      queryClient.invalidateQueries({queryKey: ["positions"]});
 
       return response;
     },
