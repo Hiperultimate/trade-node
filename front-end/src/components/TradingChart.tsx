@@ -6,17 +6,11 @@ import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useAssetPriceList } from '@/store/assetPriceList';
-import { ICandleStickFetch } from '@/types';
-import { UTCTimestamp } from 'lightweight-charts';
+import { ChartData, ICandleStickFetch } from '@/types';
 import CandlestickChart from "./CandlestickChart";
+import { UTCTimestamp } from 'lightweight-charts';
 
-interface ChartData {
-  time: UTCTimestamp;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-}
+
 
 interface TradingChartProps {
   selectedAsset: string;
@@ -31,7 +25,8 @@ const timeframes = [
 
 const TradingChart = ({ selectedAsset }: TradingChartProps) => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('5m');
-  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const chartData = useAssetPriceList(s => s.candleStickRecord);
+  const setChartData = useAssetPriceList(s => s.updateCandleStickRecord);
   const selectedAssetPrice = useAssetPriceList(s => s.assetList[selectedAsset].askPrice);
 
   const {
@@ -70,7 +65,7 @@ const TradingChart = ({ selectedAsset }: TradingChartProps) => {
         console.log("Invalid data : " , JSON.stringify(record));
       }
       return {
-        time: (new Date(record.bucket).getTime() / 1000) as UTCTimestamp,
+        time: (Math.floor(new Date(record.bucket).getTime() / 1000)) as UTCTimestamp,
         symbol: record.symbol,
         open: record.open,
         high: record.high,
@@ -79,7 +74,7 @@ const TradingChart = ({ selectedAsset }: TradingChartProps) => {
       };
     })
 
-    setChartData(cleanChart);
+    setChartData(selectedAsset, cleanChart);
     // console.log("Getting chart data from DB:", cleanChart);
 
 
@@ -128,7 +123,7 @@ const TradingChart = ({ selectedAsset }: TradingChartProps) => {
           <div>Loading...</div>
         ) : (
           <div className="h-full">
-            <CandlestickChart candleData={chartData}/>
+            <CandlestickChart candleData={chartData[selectedAsset]}/>
           </div>
         )}
       </div>

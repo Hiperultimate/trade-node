@@ -24,9 +24,10 @@ ws.addEventListener('message',async (event) => {
     const response : BinanceMarkPriceStreamMessage = JSON.parse(event.data);
     const symbol = response.data.s;
     const fetchedPrice = Number(response.data.P);
+    const time = response.data.E;
     const bidPrice = fetchedPrice - fetchedPrice * bidPriceIncrementRate;
     const askPrice = fetchedPrice + fetchedPrice * askPriceDecrementRate;
-    const payload = JSON.stringify({ symbol: symbol, askPrice, bidPrice });
+    const payload = JSON.stringify({ symbol: symbol, askPrice, bidPrice, realPrice : fetchedPrice, time : time });
     
     console.log(`Base Price : ${response.data.P} :: New Price : ${payload}`);
   

@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS quotes (
   time        TIMESTAMPTZ       NOT NULL,
   symbol      TEXT              NOT NULL,
   bid_price   DOUBLE PRECISION  NOT NULL,
-  ask_price   DOUBLE PRECISION  NOT NULL
+  ask_price   DOUBLE PRECISION  NOT NULL,
+  real_price  DOUBLE PRECISION  NOT NULL
 );
 
 -- 3. Convert to hypertable
@@ -14,7 +15,7 @@ SELECT create_hypertable(
   'quotes',
   'time',
   if_not_exists => TRUE,
-  chunk_time_interval => INTERVAL '1 hour'
+  chunk_time_interval => INTERVAL '1 hour' -- Suggesion is to change this to 1 minute
 );
 
 -- 4. Continuous aggregates: define OHLC for each timeframe
@@ -25,10 +26,10 @@ WITH (timescaledb.continuous) AS
 SELECT
   time_bucket('1 minute', time) AS bucket,
   symbol,
-  FIRST(ask_price, time) AS open,
-  MAX(ask_price) AS high,
-  MIN(bid_price) AS low,
-  LAST(bid_price, time) AS close
+  FIRST( real_price, time )   AS open,
+  max( real_price )           AS high,
+  min( real_price )           AS low,
+  LAST(  real_price, time )   AS close
 FROM quotes
 GROUP BY bucket, symbol
 WITH NO DATA;
@@ -46,10 +47,10 @@ WITH (timescaledb.continuous) AS
 SELECT
   time_bucket('5 minutes', time) AS bucket,
   symbol,
-  FIRST(ask_price, time) AS open,
-  MAX(ask_price) AS high,
-  MIN(bid_price) AS low,
-  LAST(bid_price, time) AS close
+  FIRST( real_price , time )   AS open,
+  MAX( real_price  )           AS high,
+  MIN( real_price  )           AS low,
+  LAST(  real_price , time )   AS close
 FROM quotes
 GROUP BY bucket, symbol
 WITH NO DATA;
@@ -67,10 +68,10 @@ WITH (timescaledb.continuous) AS
 SELECT
   time_bucket('15 minutes', time) AS bucket,
   symbol,
-  FIRST(ask_price, time) AS open,
-  MAX(ask_price) AS high,
-  MIN(bid_price) AS low,
-  LAST(bid_price, time) AS close
+  FIRST( real_price , time )   AS open,
+  MAX( real_price  )           AS high,
+  MIN( real_price  )           AS low,
+  LAST(  real_price , time )   AS close
 FROM quotes
 GROUP BY bucket, symbol
 WITH NO DATA;
@@ -88,10 +89,10 @@ WITH (timescaledb.continuous) AS
 SELECT
   time_bucket('30 minutes', time) AS bucket,
   symbol,
-  FIRST(ask_price, time) AS open,
-  MAX(ask_price) AS high,
-  MIN(bid_price) AS low,
-  LAST(bid_price, time) AS close
+  FIRST( real_price , time )   AS open,
+  MAX( real_price  )           AS high,
+  MIN( real_price  )           AS low,
+  LAST(  real_price , time )   AS close
 FROM quotes
 GROUP BY bucket, symbol
 WITH NO DATA;

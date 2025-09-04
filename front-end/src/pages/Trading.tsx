@@ -4,14 +4,17 @@ import TradingChart from '@/components/TradingChart';
 import TradingPanel from '@/components/TradingPanel';
 import PositionsList from '@/components/PositionsList';
 import NavBar from '@/components/NavBar';
-import useLiveAssetPrice from "@/hooks/use-liveAssetPrice";
 import { Card } from '@/components/ui/card';
+import useLiveAssetPrices from "@/hooks/use-liveAssetPrice";
+import useGetLiveCandleData from '@/hooks/use-getLiveCandleData';
+
 
 const Trading = () => {
   const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
 
   // We will connect to WS to fetch latest price list
-  useLiveAssetPrice();
+  useLiveAssetPrices();
+  useGetLiveCandleData();
 
   return (
     <div className="h-screen bg-background flex flex-col">
