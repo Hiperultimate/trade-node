@@ -9,6 +9,7 @@ function useCalculateAllPositionPnl() {
     const currentAssetPrices = useAssetPriceList((s) => s.assetList);
 
     useEffect(() => {
+        if(!userPositions) return;
         const calculatedPnlList = userPositions.map(position => {
             if (!position.asset || !currentAssetPrices[position.asset]) {
                 return;
@@ -25,7 +26,7 @@ function useCalculateAllPositionPnl() {
                     ? newCurrentPrice - position.entryPrice
                     : position.entryPrice - newCurrentPrice;
 
-            const newPnl = priceDiff * position.qty;
+            const newPnl = priceDiff * position.qty * position.leverage;
             return position.margin + newPnl;
         });
 
