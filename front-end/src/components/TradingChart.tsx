@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useAssetPriceList } from '@/store/assetPriceList';
-import { ChartData, ICandleStickFetch } from '@/types';
+import { ChartInterval, ICandleStickFetch, ITimeDuration } from '@/types';
 import CandlestickChart from "./CandlestickChart";
 import { UTCTimestamp } from 'lightweight-charts';
 
@@ -16,7 +16,7 @@ interface TradingChartProps {
   selectedAsset: string;
 }
 
-const timeframes = [
+const timeframes : { label: ITimeDuration , value : ITimeDuration }[] = [
   { label: '1m', value: '1m' },
   { label: '5m', value: '5m' },
   { label: '15m', value: '15m' },
@@ -24,7 +24,7 @@ const timeframes = [
 ];
 
 const TradingChart = ({ selectedAsset }: TradingChartProps) => {
-  const [selectedTimeframe, setSelectedTimeframe] = useState('5m');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<ITimeDuration>(ChartInterval.FiveMinutes);
   const chartData = useAssetPriceList(s => s.candleStickRecord);
   const setChartData = useAssetPriceList(s => s.updateCandleStickRecord);
   const selectedAssetPrice = useAssetPriceList(s => s.assetList[selectedAsset].askPrice);
@@ -53,33 +53,29 @@ const TradingChart = ({ selectedAsset }: TradingChartProps) => {
         }
       );
 
+      const candleStickData = response.data;
+      const cleanChart = candleStickData.map(record => { 
+        // const time = new Date(record.bucket);
+        if(record.low > record.high){
+          console.log("Invalid data : " , JSON.stringify(record));
+        }
+        return {
+          time: (Math.floor(new Date(record.bucket).getTime() / 1000)) as UTCTimestamp,
+          symbol: record.symbol,
+          open: record.open,
+          high: record.high,
+          low: record.low,
+          close: record.close,
+        };
+      })
+      
+      console.log("UPDATING CHART! :", response.data);
+      setChartData(selectedAsset,selectedTimeframe, cleanChart);
+
       return response.data;
     },
+    // staleTime: Infinity,
   });
-
-  useEffect(() => { 
-    if (!candleStickData) return;
-    const cleanChart = candleStickData.map(record => { 
-      // const time = new Date(record.bucket);
-      if(record.low > record.high){
-        console.log("Invalid data : " , JSON.stringify(record));
-      }
-      return {
-        time: (Math.floor(new Date(record.bucket).getTime() / 1000)) as UTCTimestamp,
-        symbol: record.symbol,
-        open: record.open,
-        high: record.high,
-        low: record.low,
-        close: record.close,
-      };
-    })
-
-    setChartData(selectedAsset, cleanChart);
-    // console.log("Getting chart data from DB:", cleanChart);
-
-
-  },[candleStickData])
-
 
   return (
     <Card className="flex-1 bg-panel-bg border-panel-border h-full">
@@ -119,13 +115,14 @@ const TradingChart = ({ selectedAsset }: TradingChartProps) => {
       </div>
 
       <div className="h-full p-4">
-        {isLoading ? (
+        {isLoading ? 
           <div>Loading...</div>
-        ) : (
-          <div className="h-full">
-            <CandlestickChart candleData={chartData[selectedAsset]}/>
-          </div>
-        )}
+         : 
+         chartData[selectedAsset] &&
+          (<div className="h-full">
+            <CandlestickChart candleData={chartData[selectedAsset][selectedTimeframe]}/>
+          </div>)
+        }
       </div>
     </Card>
   );

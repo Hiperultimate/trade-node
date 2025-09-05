@@ -6,7 +6,7 @@ import PositionsList from '@/components/PositionsList';
 import NavBar from '@/components/NavBar';
 import { Card } from '@/components/ui/card';
 import useLiveAssetPrices from "@/hooks/use-liveAssetPrice";
-import useGetLiveCandleData from '@/hooks/use-getLiveCandleData';
+// import useGetLiveCandleData from '@/hooks/use-getLiveCandleData';
 
 
 const Trading = () => {
@@ -14,7 +14,7 @@ const Trading = () => {
 
   // We will connect to WS to fetch latest price list
   useLiveAssetPrices();
-  useGetLiveCandleData();
+  // useGetLiveCandleData();
 
   return (
     <div className="h-screen bg-background flex flex-col">
